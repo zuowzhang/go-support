@@ -1,9 +1,9 @@
 package log
 
 import (
-	"os"
-	"io"
 	"fmt"
+	"io"
+	"os"
 	"time"
 )
 
@@ -12,6 +12,10 @@ type Logger interface {
 	I(string, ...interface{})
 	W(string, ...interface{})
 	E(string, ...interface{})
+}
+
+type LogWriter interface {
+	Write(info *LogInfo)
 }
 
 const (
@@ -25,27 +29,34 @@ const (
 type Config struct {
 	Level  int
 	Cache  int
-	Writer io.Writer
+	Writer LogWriter
+}
+
+type LogInfo struct {
+	time  string
+	level string
+	msg   string
 }
 
 var defaultConfig *Config = &Config{
-	Level:DEBUG,
-	Cache:200,
-	Writer:os.Stdout,
+	Level:  DEBUG,
+	Cache:  1000,
+	Writer: StdWriter,
 }
 
 type proxy struct {
 	config *Config
-	ch     chan string
+	ch     chan *LogInfo
 }
 
-func (p *proxy)write() {
+func (p *proxy) write() {
 	for msg := range p.ch {
-		p.config.Writer.Write([]byte(msg))
+		p.config.Writer.Write(msg)
 	}
 }
 
-func (p *proxy)formatLog(format string, args ...interface{}) {
+func (p *proxy) formatLog(format string, args ...interface{}) {
+	now := time.Now()
 	var level string
 	switch p.config.Level {
 	case DEBUG:
@@ -58,31 +69,35 @@ func (p *proxy)formatLog(format string, args ...interface{}) {
 		level = "ERROR"
 
 	}
-	p.ch <- fmt.Sprintf("%s %s: %s",
-		time.Now().Format("2006-01-02 15:04:05"),
-		level, fmt.Sprintf(format, args...))
+	p.ch <- &logInfo{
+		time:  now.Format("2006-01-02 15:04:05"),
+		level: level,
+		msg: fmt.Sprintf("%s %s: %s",
+			now.Format("2006-01-02 15:04:05"),
+			level, fmt.Sprintf(format, args...)),
+	}
 
 }
 
-func (p *proxy)D(format string, args ...interface{}) {
+func (p *proxy) D(format string, args ...interface{}) {
 	if p.config.Level >= DEBUG {
 		p.formatLog(format, args...)
 	}
 }
 
-func (p *proxy)I(format string, args ...interface{}) {
+func (p *proxy) I(format string, args ...interface{}) {
 	if p.config.Level >= INFO {
 		p.formatLog(format, args...)
 	}
 }
 
-func (p *proxy)W(format string, args ...interface{}) {
+func (p *proxy) W(format string, args ...interface{}) {
 	if p.config.Level >= WARN {
 		p.formatLog(format, args...)
 	}
 }
 
-func (p *proxy)E(format string, args ...interface{}) {
+func (p *proxy) E(format string, args ...interface{}) {
 	if p.config.Level >= ERROR {
 		p.formatLog(format, args...)
 	}
@@ -93,8 +108,8 @@ func NewLogger(config *Config) Logger {
 		config = defaultConfig
 	}
 	logger := &proxy{
-		config:config,
-		ch:make(chan string, config.Cache),
+		config: config,
+		ch:     make(chan *LogInfo, config.Cache),
 	}
 	go func() {
 		logger.write()
