@@ -13,10 +13,7 @@ func BenchmarkProxy_D(b *testing.B) {
 }
 
 func BenchmarkProxy_I(b *testing.B) {
-	setDefaultWriter(&FileWriter{
-		FileDir:"./log",
-		FileCount:2,
-	})
+	setDefaultWriter(NewFileWriter("./log", 2))
 	logger := NewLogger(nil)
 	for i := 0; i < b.N; i++ {
 		logger.I("i = %d\n", i)

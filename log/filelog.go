@@ -10,41 +10,45 @@ import (
 
 const log_suffix string = ".log"
 
-type FileWriter struct {
-	FileDir         string
-	FileCount       int
+type fileWriter struct {
+	dir             string
+	count           int
 	dirExists       bool
 	countValid      bool
 	pFile           *os.File
 	currentFileName string
 }
 
-func (fw *FileWriter)checkDir() bool {
+func NewFileWriter(dir string, fileCount int) LogWriter {
+	if dir == "" {
+		dir = "."
+	}
+	if fileCount < 1 {
+		fileCount = 7
+	}
+	return &fileWriter{
+		dir:dir,
+		count:fileCount,
+	}
+}
+
+func (fw *fileWriter)checkDir() bool {
 	if !fw.dirExists {
-		if fw.FileDir == "" {
-			fw.FileDir = "."
+		if fw.dir == "" {
+			fw.dir = "."
 			fw.dirExists = true
 		} else {
-			_, err := os.Stat(fw.FileDir)
+			_, err := os.Stat(fw.dir)
 			if err == nil {
 				fw.dirExists = true
 			} else if os.IsNotExist(err) {
-				if os.MkdirAll(fw.FileDir, 0777) == nil {
+				if os.MkdirAll(fw.dir, 0777) == nil {
 					fw.dirExists = true
 				}
 			}
 		}
 	}
 	return fw.dirExists
-}
-
-func (fw *FileWriter)checkCount() {
-	if !fw.countValid {
-		if fw.FileCount <= 1 {
-			fw.FileCount = 7
-		}
-		fw.countValid = true
-	}
 }
 
 type fileNameAndModifyTime struct {
@@ -66,12 +70,11 @@ func (s fileNameAndModifyTimeSlice)Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 
-func (fw *FileWriter)checkFileCount() {
-	fileInfos, err := ioutil.ReadDir(fw.FileDir)
+func (fw *fileWriter)checkFileCount() {
+	fileInfos, err := ioutil.ReadDir(fw.dir)
 	if err != nil {
 		return
 	}
-	fw.checkCount()
 	var logFileInfos fileNameAndModifyTimeSlice
 	for _, fileInfo := range fileInfos {
 		if !fileInfo.IsDir() && strings.HasSuffix(fileInfo.Name(), log_suffix) {
@@ -81,18 +84,18 @@ func (fw *FileWriter)checkFileCount() {
 			})
 		}
 	}
-	if len(logFileInfos) > fw.FileCount {
+	if len(logFileInfos) > fw.count {
 		//先对日志文件进行排序
 		sort.Sort(logFileInfos)
 		//删除超过最大文件数的日志文件
-		for i := 0; i < fw.FileCount; i++ {
-			os.Remove(fw.FileDir + string(os.PathSeparator) + logFileInfos[i].name)
+		for i := 0; i < fw.count; i++ {
+			os.Remove(fw.dir + string(os.PathSeparator) + logFileInfos[i].name)
 		}
 	}
 }
 
-func (fw *FileWriter)openLogFile(fileName string) error {
-	pFile, err := os.OpenFile(fw.FileDir + string(os.PathSeparator) + fileName + log_suffix,
+func (fw *fileWriter)openLogFile(fileName string) error {
+	pFile, err := os.OpenFile(fw.dir + string(os.PathSeparator) + fileName + log_suffix,
 		os.O_CREATE | os.O_APPEND | os.O_RDWR,
 		0666)
 	if err != nil {
@@ -104,7 +107,7 @@ func (fw *FileWriter)openLogFile(fileName string) error {
 	return nil
 }
 
-func (fw *FileWriter) checkFileName(fileName string) error {
+func (fw *fileWriter) checkFileName(fileName string) error {
 	if fw.pFile == nil {
 		err := fw.openLogFile(fileName)
 		if err != nil {
@@ -123,7 +126,7 @@ func (fw *FileWriter) checkFileName(fileName string) error {
 	return nil
 }
 
-func (fw *FileWriter) Write(info *LogInfo) {
+func (fw *fileWriter) Write(info *LogInfo) {
 	if fw.checkDir() {
 		err := fw.checkFileName(info.time)
 		if err != nil {
