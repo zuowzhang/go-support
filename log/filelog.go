@@ -14,6 +14,7 @@ type FileWriter struct {
 	FileDir         string
 	FileCount       int
 	dirExists       bool
+	countValid      bool
 	pFile           *os.File
 	currentFileName string
 }
@@ -35,6 +36,15 @@ func (fw *FileWriter)checkDir() bool {
 		}
 	}
 	return fw.dirExists
+}
+
+func (fw *FileWriter)checkCount() {
+	if !fw.countValid {
+		if fw.FileCount <= 1 {
+			fw.FileCount = 7
+		}
+		fw.countValid = true
+	}
 }
 
 type fileNameAndModifyTime struct {
@@ -61,6 +71,7 @@ func (fw *FileWriter)checkFileCount() {
 	if err != nil {
 		return
 	}
+	fw.checkCount()
 	var logFileInfos fileNameAndModifyTimeSlice
 	for _, fileInfo := range fileInfos {
 		if !fileInfo.IsDir() && strings.HasSuffix(fileInfo.Name(), log_suffix) {
@@ -68,8 +79,6 @@ func (fw *FileWriter)checkFileCount() {
 				name:fileInfo.Name(),
 				lastModify:fileInfo.ModTime(),
 			})
-		} else {
-			continue
 		}
 	}
 	if len(logFileInfos) > fw.FileCount {
