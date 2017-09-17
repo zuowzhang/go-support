@@ -1,5 +1,7 @@
 package orm
 
+import "bytes"
+
 type Where struct {
 	condition string
 	args      []interface{}
@@ -11,6 +13,24 @@ func NewWhere(condition string, args ...interface{}) *Where {
 		condition:condition,
 		args:args,
 	}
+}
+
+func (w *Where)sql() (string, []interface{}) {
+	var buffer bytes.Buffer
+	args := make([]interface{}, len(w.args))
+	args = append(args, w.args...)
+	buffer.WriteString(" WHERE ")
+	buffer.WriteString(w.condition)
+	next := w.next
+	for {
+		if next == nil {
+			break
+		}
+		buffer.WriteString(next.condition)
+		args = append(args, next.args...)
+		next = next.next
+	}
+	return buffer.String(), args
 }
 
 func (w *Where)appendKeyWord(key string, condition string, args ...interface{}) *Where {
