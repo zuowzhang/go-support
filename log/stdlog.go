@@ -2,7 +2,6 @@ package log
 
 import (
 	"io"
-	"os"
 )
 
 type StdWriter struct {
@@ -10,5 +9,5 @@ type StdWriter struct {
 }
 
 func (sw *StdWriter) Write(info *LogInfo) {
-
+	sw.writer.Write([]byte(info.msg))
 }
