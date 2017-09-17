@@ -60,7 +60,7 @@ func (q *Query) GetOne() interface{} {
 
 func (q *Query) Get() []interface{} {
 	sql, args := q.sql()
-	rows, err := q.table.DB.db.Query(sql, args...)
+	rows, err := q.table.db.db.Query(sql, args...)
 	if err != nil {
 		//show error
 		return nil
