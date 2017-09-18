@@ -17,7 +17,7 @@ func NewWhere(condition string, args ...interface{}) *Where {
 
 func (w *Where)sql() (string, []interface{}) {
 	var buffer bytes.Buffer
-	args := make([]interface{}, len(w.args))
+	var args []interface{}
 	args = append(args, w.args...)
 	buffer.WriteString(" WHERE ")
 	buffer.WriteString(w.condition)

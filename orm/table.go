@@ -8,8 +8,8 @@ import (
 
 const (
 	TAG_COLUMN_NAME = "name"
-	TAG_IGNORE      = "ignore"
-	TAG_TYPE        = "type"
+	TAG_IGNORE = "ignore"
+	TAG_TYPE = "type"
 )
 
 type Table struct {
@@ -81,6 +81,12 @@ func (t *Table) sqlType(fieldName string) string {
 			return "INT"
 		case reflect.Int64, reflect.Uint64:
 			return "BIGINT"
+		case reflect.Float32:
+			return "FLOAT"
+		case reflect.Float64:
+			return "DOUBLE"
+		case reflect.Bool:
+			return "TINYINT"
 		}
 	}
 	return ""
@@ -99,6 +105,7 @@ func (t *Table) CreateIfNotExists() error {
 		buffer.WriteString(cName)
 		buffer.WriteByte(' ')
 		buffer.WriteString(t.sqlType(fName))
+		idx++
 	}
 	buffer.WriteByte(')')
 	if t.charset != "" {
@@ -106,6 +113,7 @@ func (t *Table) CreateIfNotExists() error {
 		buffer.WriteString(t.charset)
 	}
 	sql := buffer.String()
+	t.db.printSql(sql)
 	_, err := t.db.db.Exec(sql)
 	return err
 }

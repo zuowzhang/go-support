@@ -59,6 +59,7 @@ func (u *Update) execBean() (int64, error) {
 		args = append(args, wArgs...)
 	}
 	sql := buffer.String()
+	u.table.db.printSql(sql, args...)
 	result, err := u.table.db.db.Exec(sql, args...)
 	if err != nil {
 		return -1, err
@@ -82,6 +83,7 @@ func (u *Update) execKV() (int64, error) {
 		buffer.WriteString(k)
 		valueBuffer.WriteByte('?')
 		args = append(args, v)
+		idx++
 	}
 	buffer.WriteByte(')')
 	valueBuffer.WriteByte(',')
@@ -92,6 +94,7 @@ func (u *Update) execKV() (int64, error) {
 		args = append(args, wArgs...)
 	}
 	sql := buffer.String()
+	u.table.db.printSql(sql, args...)
 	result, err := u.table.db.db.Exec(sql, args...)
 	if err != nil {
 		return -1, err
