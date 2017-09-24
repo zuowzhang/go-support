@@ -50,7 +50,7 @@ type memoryProvider struct {
 
 func (p *memoryProvider)update(store *memoryStore) {
 	store.lastAccessedTime = time.Now()
-	p.sessionList.MoveToFront(p.sessions(store.id))
+	p.sessionList.MoveToFront(p.sessions[store.id])
 }
 
 func (p *memoryProvider)SessionStart(sid string) Session {
