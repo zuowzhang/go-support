@@ -6,13 +6,13 @@ import (
 	"container/list"
 )
 
-var memoryProvider = &memoryProvider{
+var provider = &memoryProvider{
 	sessions:make(map[string]*list.Element, 0),
 	sessionList:list.New(),
 }
 
 func init() {
-	RegisterProvider(SESSION_PROVIDER_MEMORY, memoryProvider)
+	RegisterProvider(SESSION_PROVIDER_MEMORY, provider)
 }
 
 type memoryStore struct {
@@ -34,12 +34,12 @@ func (store *memoryStore)Get(key interface{}) interface{} {
 
 func (store *memoryStore)Set(key, value interface{}) {
 	store.values[key] = value
-	memoryProvider.update(store)
+	provider.update(store)
 }
 
 func (store *memoryStore)Delete(key interface{}) {
 	delete(store.values, key)
-	memoryProvider.update(store)
+	provider.update(store)
 }
 
 type memoryProvider struct {
@@ -50,7 +50,7 @@ type memoryProvider struct {
 
 func (p *memoryProvider)update(store *memoryStore) {
 	store.lastAccessedTime = time.Now()
-	p.sessionList.MoveToFront(store)
+	p.sessionList.MoveToFront(p.sessions(store.id))
 }
 
 func (p *memoryProvider)SessionStart(sid string) Session {
