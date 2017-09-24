@@ -23,6 +23,7 @@ func (d *Delete) Exec() (int64, error) {
 		args = wArgs
 	}
 	sql := buffer.String()
+	d.table.db.printSql(sql, args...)
 	result, err := d.table.db.db.Exec(sql, args...)
 	if err != nil {
 		return -1, err

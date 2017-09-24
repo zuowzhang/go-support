@@ -3,16 +3,26 @@ package orm
 import (
 	"database/sql"
 	"sync"
+	"fmt"
 )
 
-type DB struct {
-	db     *sql.DB
-	lock   sync.RWMutex
-	tables map[string]*Table
+type Log interface {
+	D(string, ...interface{})
+	I(string, ...interface{})
+	W(string, ...interface{})
+	E(string, ...interface{})
 }
 
-func NewDB(driverName, dataSourceName string) (*DB, error) {
-	db, err := sql.Open(driverName, dataSourceName)
+type DB struct {
+	db      *sql.DB
+	lock    sync.RWMutex
+	tables  map[string]*Table
+	showSql bool
+	logger  Log
+}
+
+func NewDB(driverName, dsn string) (*DB, error) {
+	db, err := sql.Open(driverName, dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -20,6 +30,23 @@ func NewDB(driverName, dataSourceName string) (*DB, error) {
 		db:     db,
 		tables: make(map[string]*Table),
 	}, nil
+}
+
+func (db *DB)ShowSql(show bool) *DB {
+	db.showSql = show
+	return db
+}
+
+func (db *DB)Logger(logger Log) *DB {
+	db.logger = logger
+	return db
+}
+
+func (db *DB)printSql(sql string, args ...interface{}) *DB {
+	if db.showSql && db.logger != nil {
+		db.logger.D(fmt.Sprintf("<%s> with args%v\n", sql, args))
+	}
+	return db
 }
 
 func (db *DB) GetTable(tableName string, modelBean interface{}) *Table {
