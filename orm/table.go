@@ -4,12 +4,14 @@ import (
 	"reflect"
 	"strings"
 	"bytes"
+	"log"
 )
 
 const (
 	TAG_COLUMN_NAME = "name"
 	TAG_IGNORE = "ignore"
 	TAG_TYPE = "type"
+	TAG_CONSTRAINT = "constraint"
 )
 
 type Table struct {
@@ -92,6 +94,13 @@ func (t *Table) sqlType(fieldName string) string {
 	return ""
 }
 
+func (t *Table)constraint(fieldName string) string {
+	if field, ok := t.structType.FieldByName(fieldName); ok {
+		return field.Tag.Get(TAG_CONSTRAINT)
+	}
+	return ""
+}
+
 func (t *Table) CreateIfNotExists() error {
 	var buffer bytes.Buffer
 	buffer.WriteString("CREATE TABLE IF NOT EXISTS ")
@@ -105,6 +114,8 @@ func (t *Table) CreateIfNotExists() error {
 		buffer.WriteString(cName)
 		buffer.WriteByte(' ')
 		buffer.WriteString(t.sqlType(fName))
+		buffer.WriteByte(' ')
+		buffer.WriteString(t.constraint(fName))
 		idx++
 	}
 	buffer.WriteByte(')')

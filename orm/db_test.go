@@ -7,7 +7,7 @@ import (
 )
 
 type User struct {
-	Name        string
+	Name        string `type:"VARCHAR(256)" constraint:"NOT NULL"`
 	Age         int
 	TestFloat32 float32
 	TestFloat64 float64
