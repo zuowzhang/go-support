@@ -73,7 +73,9 @@ func (c *context)Redirect(code int, url string) error {
 func (c *context)Render(code int, name string, data interface{}) error {
 	buffer := new(bytes.Buffer)
 	if c.simple.render != nil {
-		return c.simple.render.Render(buffer, name, data)
+		if err := c.simple.render.Render(buffer, name, data); err != nil {
+			return err
+		}
 	}
 	return c.Blob(code, "text/html; charset=UTF-8", buffer.Bytes())
 }
