@@ -20,6 +20,7 @@ func (r *render)ParseGlob(pattern string) error {
 	} else {
 		r.template = template
 	}
+	return nil
 }
 
 func (r *render)Render(writer io.Writer, name string, data interface{}) error {

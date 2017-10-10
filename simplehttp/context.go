@@ -112,5 +112,14 @@ func (c *context)Reset(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *context)Handler() HandlerFunc {
-	return c.simple.router.items[http.MethodGet]
+	methods := c.simple.router.items[c.request.URL.Path]
+	switch c.request.Method {
+	case http.MethodGet:
+		return methods.get
+	case http.MethodPost:
+		return methods.post
+	}
+	return func(c Context) error {
+		return c.String(404, "NOT FOUND")
+	}
 }

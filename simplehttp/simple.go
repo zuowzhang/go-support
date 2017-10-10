@@ -55,7 +55,7 @@ func (s *Simple)Get(path string, h HandlerFunc) {
 }
 
 func (s *Simple)Post(path string, h HandlerFunc) {
-	s.router.Add(http.MethodPost, h)
+	s.router.Add(http.MethodPost, path, h)
 }
 
 func (s *Simple)Start(address string) error {
@@ -79,8 +79,7 @@ func (s *Simple)ParseGlob(pattern string) error {
 	if s.render == nil {
 		s.render = new(render)
 	}
-	render := s.render.(render)
-	return render.ParseGlob(pattern)
+	return s.render.(*render).ParseGlob(pattern)
 }
 
 func (s *Simple)HttpErrorHandler(err error, c Context) {
@@ -104,7 +103,7 @@ type tcpKeepAliveListener struct {
 	listener *net.TCPListener
 }
 
-func (l tcpKeepAliveListener)Accept() (net.Conn, error) {
+func (l *tcpKeepAliveListener)Accept() (net.Conn, error) {
 	tc, err := l.listener.AcceptTCP()
 	if err != nil {
 		return nil, err
@@ -112,6 +111,14 @@ func (l tcpKeepAliveListener)Accept() (net.Conn, error) {
 	tc.SetKeepAlive(true)
 	tc.SetKeepAlivePeriod(3 * time.Minute);
 	return tc, err
+}
+
+func (l *tcpKeepAliveListener)Addr() net.Addr {
+	return l.listener.Addr()
+}
+
+func (l *tcpKeepAliveListener)Close() error {
+	return l.listener.Close()
 }
 
 func newListener(address string) (*tcpKeepAliveListener, error) {

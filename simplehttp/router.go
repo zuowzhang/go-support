@@ -12,7 +12,7 @@ type Router struct {
 }
 
 func NewRouter() *Router {
-	return Router{
+	return &Router{
 		items:make(map[string]*methodFunc),
 	}
 }
