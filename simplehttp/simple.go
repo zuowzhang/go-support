@@ -9,9 +9,9 @@ import (
 )
 
 type (
-	FilterFunc func(http.HandlerFunc) http.HandlerFunc
-
 	HandlerFunc func(Context) error
+
+	FilterFunc func(HandlerFunc) HandlerFunc
 
 	Simple struct {
 		sessionManager *session.SessionManager;
@@ -20,6 +20,7 @@ type (
 		filters        []FilterFunc
 		router         *Router
 		pool           sync.Pool
+		render         Render
 	}
 )
 
@@ -34,6 +35,7 @@ func NewSimple() *Simple {
 	simple.pool.New = func() interface{} {
 		return simple.newContext()
 	}
+	simple.render = new(render)
 	return simple
 }
 
@@ -73,11 +75,28 @@ func (s *Simple)StartServer(server *http.Server) (err error) {
 	return
 }
 
+func (s *Simple)ParseGlob(pattern string) error {
+	if s.render == nil {
+		s.render = new(render)
+	}
+	return s.render.(render).ParseGlob(pattern)
+}
+
+func (s *Simple)HttpErrorHandler(err error, c Context) {
+	c.String(500, err.Error())
+}
+
 func (s *Simple)ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	context := s.pool.Get().(Context)
 	defer s.pool.Put(context)
 	context.Reset(w, r)
-
+	h := context.Handler();
+	for i := len(s.filters) - 1; i >= 0; i-- {
+		h = s.filters[i](h)
+	}
+	if err := h(context); err != nil {
+		s.HttpErrorHandler(err, context)
+	}
 }
 
 type tcpKeepAliveListener struct {
