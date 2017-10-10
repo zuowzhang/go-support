@@ -6,6 +6,7 @@ import (
 	"errors"
 	"bytes"
 	"strings"
+	"log"
 )
 
 type Context interface {
@@ -112,12 +113,15 @@ func (c *context)Reset(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *context)Handler() HandlerFunc {
-	methods := c.simple.router.items[c.request.URL.Path]
-	switch c.request.Method {
-	case http.MethodGet:
-		return methods.get
-	case http.MethodPost:
-		return methods.post
+	log.Printf("Handler %s\n", c.request.URL.Path)
+	methods, ok := c.simple.router.items[c.request.URL.Path]
+	if ok {
+		switch c.request.Method {
+		case http.MethodGet:
+			return methods.get
+		case http.MethodPost:
+			return methods.post
+		}
 	}
 	return func(c Context) error {
 		return c.String(404, "NOT FOUND")
