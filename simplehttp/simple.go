@@ -79,7 +79,8 @@ func (s *Simple)ParseGlob(pattern string) error {
 	if s.render == nil {
 		s.render = new(render)
 	}
-	return s.render.(render).ParseGlob(pattern)
+	render := s.render.(render)
+	return render.ParseGlob(pattern)
 }
 
 func (s *Simple)HttpErrorHandler(err error, c Context) {
@@ -119,7 +120,7 @@ func newListener(address string) (*tcpKeepAliveListener, error) {
 		return nil, err
 	}
 	return &tcpKeepAliveListener{
-		listener:l,
+		listener:l.(*net.TCPListener),
 	}, nil
 }
 
