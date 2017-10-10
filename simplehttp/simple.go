@@ -18,8 +18,8 @@ type (
 		server         *http.Server
 		listener       net.Listener
 		filters        []FilterFunc
-		router         *Router
 		pool           sync.Pool
+		router         *Router
 		render         Render
 	}
 )
@@ -35,6 +35,7 @@ func NewSimple() *Simple {
 	simple.pool.New = func() interface{} {
 		return simple.newContext()
 	}
+	simple.router = NewRouter()
 	simple.render = new(render)
 	return simple
 }
