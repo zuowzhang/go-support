@@ -2,7 +2,6 @@ package simplehttp
 
 import (
 	"net/http"
-	"log"
 )
 
 type methodFunc struct {
@@ -22,9 +21,9 @@ func NewRouter() *Router {
 
 func (r *Router)Add(method, path string, h HandlerFunc) {
 	methods, ok := r.items[path]
-	log.Printf("Add %s %s %t\n", method, path, ok)
 	if !ok {
 		methods = new(methodFunc)
+		r.items[path] = methods
 	}
 	switch method {
 	case http.MethodGet:
@@ -32,5 +31,4 @@ func (r *Router)Add(method, path string, h HandlerFunc) {
 	case http.MethodPost:
 		methods.post = h
 	}
-	log.Printf("Add end")
 }

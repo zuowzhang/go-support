@@ -6,7 +6,6 @@ import (
 	"errors"
 	"bytes"
 	"strings"
-	"log"
 )
 
 type Context interface {
@@ -113,7 +112,6 @@ func (c *context)Reset(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *context)Handler() HandlerFunc {
-	log.Printf("Handler %s\n", c.request.URL.Path)
 	methods, ok := c.simple.router.items[c.request.URL.Path]
 	if ok {
 		switch c.request.Method {
