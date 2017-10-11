@@ -14,11 +14,11 @@ func (g *Group)Use(filter ...FilterFunc) *Group {
 }
 
 func (g *Group)Get(path string, h HandlerFunc) *Group {
-	g.simple.Get(g.prefix + os.PathSeparator + path, h)
+	g.simple.Get(g.prefix + string(os.PathSeparator) + path, h)
 	return g
 }
 
 func (g *Group)Post(path string, h HandlerFunc) *Group {
-	g.simple.Post(g.prefix + os.PathSeparator + path, h)
+	g.simple.Post(g.prefix + string(os.PathSeparator) + path, h)
 	return g
 }
