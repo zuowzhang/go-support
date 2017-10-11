@@ -101,11 +101,11 @@ func (s *Simple)ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 type tcpKeepAliveListener struct {
-	listener *net.TCPListener
+	*net.TCPListener
 }
 
-func (l *tcpKeepAliveListener)Accept() (net.Conn, error) {
-	tc, err := l.listener.AcceptTCP()
+func (l tcpKeepAliveListener)Accept() (net.Conn, error) {
+	tc, err := l.AcceptTCP()
 	if err != nil {
 		return nil, err
 	}
@@ -114,21 +114,13 @@ func (l *tcpKeepAliveListener)Accept() (net.Conn, error) {
 	return tc, err
 }
 
-func (l *tcpKeepAliveListener)Addr() net.Addr {
-	return l.listener.Addr()
-}
-
-func (l *tcpKeepAliveListener)Close() error {
-	return l.listener.Close()
-}
-
 func newListener(address string) (*tcpKeepAliveListener, error) {
 	l, err := net.Listen("tcp", address)
 	if err != nil {
 		return nil, err
 	}
 	return &tcpKeepAliveListener{
-		listener:l.(*net.TCPListener),
+		l.(*net.TCPListener),
 	}, nil
 }
 
