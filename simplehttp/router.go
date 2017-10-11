@@ -19,16 +19,22 @@ func NewRouter() *Router {
 	}
 }
 
-func (r *Router)Add(method, path string, h HandlerFunc) {
+func (r *Router)Add(method, path string, h HandlerFunc, filters... FilterFunc) {
 	methods, ok := r.items[path]
 	if !ok {
 		methods = new(methodFunc)
 		r.items[path] = methods
 	}
+	handler := func(c Context) error {
+		for i := len(filters) - 1; i >= 0; i-- {
+			h = filters[i](h)
+		}
+		return h(c)
+	}
 	switch method {
 	case http.MethodGet:
-		methods.get = h
+		methods.get = handler
 	case http.MethodPost:
-		methods.post = h
+		methods.post = handler
 	}
 }

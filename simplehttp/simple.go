@@ -59,12 +59,12 @@ func (s *Simple)Use(filter ...FilterFunc) *Simple {
 	return s
 }
 
-func (s *Simple)Get(path string, h HandlerFunc) {
-	s.router.Add(http.MethodGet, path, h)
+func (s *Simple)Get(path string, h HandlerFunc, filters... FilterFunc) {
+	s.router.Add(http.MethodGet, path, h, filters...)
 }
 
-func (s *Simple)Post(path string, h HandlerFunc) {
-	s.router.Add(http.MethodPost, path, h)
+func (s *Simple)Post(path string, h HandlerFunc, filters... FilterFunc) {
+	s.router.Add(http.MethodPost, path, h, filters...)
 }
 
 func (s *Simple)Start(address string) error {

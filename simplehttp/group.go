@@ -13,12 +13,12 @@ func (g *Group)Use(filter ...FilterFunc) *Group {
 	return g
 }
 
-func (g *Group)Get(path string, h HandlerFunc) *Group {
-	g.simple.Get(g.prefix + string(os.PathSeparator) + path, h)
+func (g *Group)Get(path string, h HandlerFunc, filters... FilterFunc) *Group {
+	g.simple.Get(g.prefix + string(os.PathSeparator) + path, h, append(g.filters, filters...))
 	return g
 }
 
-func (g *Group)Post(path string, h HandlerFunc) *Group {
-	g.simple.Post(g.prefix + string(os.PathSeparator) + path, h)
+func (g *Group)Post(path string, h HandlerFunc, filters... FilterFunc) *Group {
+	g.simple.Post(g.prefix + string(os.PathSeparator) + path, h, append(g.filters, filters...))
 	return g
 }
