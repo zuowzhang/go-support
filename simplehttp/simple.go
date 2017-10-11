@@ -8,6 +8,42 @@ import (
 	"sync"
 )
 
+
+/**
+usage:
+func NewAuthorityFilter() simplehttp.FilterFunc {
+	return func(h simplehttp.HandlerFunc) simplehttp.HandlerFunc {
+		return func(c simplehttp.Context) error {
+			if c.Get("uid") == nil {
+				c.Redirect(http.StatusTemporaryRedirect, "http://localhost:8081/login")
+				return nil
+			}
+			return h(c)
+		}
+	}
+}
+
+func main() {
+	simple := simplehttp.NewSimple()
+	simple.Use(filter.NewLogFilter(nil))
+	simple.Get("/hello", func(c simplehttp.Context) error {
+		c.Set("hello", "你好")
+		return c.String(200, "hello world")
+	})
+	simple.Get("/hello/1", func(c simplehttp.Context) error {
+		return c.String(200, c.Get("hello").(string))
+	})
+	simple.ParseGlob("html/*.html")
+	simple.Get("/login", func(c simplehttp.Context) error {
+		return c.Render(200, "login.html", nil)
+	})
+	simple.Group("/user", NewAuthorityFilter()).Get("index", func(c simplehttp.Context) error {
+		return c.Render(200, "index.html", nil)
+	})
+	simple.Start(":8081")
+}
+ */
+
 type (
 	HandlerFunc func(Context) error
 
