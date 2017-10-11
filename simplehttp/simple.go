@@ -46,6 +46,14 @@ func (s *Simple)newContext() Context {
 	}
 }
 
+func (s *Simple)Group(prefix string, filters... FilterFunc) *Group {
+	return &Group{
+		prefix:prefix,
+		filters:filters,
+		simple:s,
+	}
+}
+
 func (s *Simple)Use(filter ...FilterFunc) *Simple {
 	s.filters = append(s.filters, filter...)
 	return s
